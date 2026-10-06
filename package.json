@@ -1,0 +1,11 @@
+{
+  "name": "ai-study-planner",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Full-stack AI Study Planner (React + Express)",
+  "scripts": {
+    "client": "npm run dev --prefix client",
+    "server": "npm run dev --prefix server",
+    "server:start": "npm start --prefix server"
+  }
+}
