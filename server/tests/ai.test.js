@@ -15,8 +15,36 @@ jest.mock('../services/groqService', () => ({
 process.env.JWT_SECRET = 'test-only-jwt-secret';
 
 const app = require('../app');
+const { parseStructuredRecommendation } = jest.requireActual(
+  '../services/groqService'
+);
 
 const userId = '507f1f77bcf86cd799439011';
+
+const structuredRecommendation = {
+  summary: 'Start with graph traversal before reviewing shortest paths.',
+  focusTask: 'Review algorithms',
+  reason: 'It is high priority and provides the foundation for the other task.',
+  resources: [
+    {
+      title: 'MDN Web Docs',
+      url: 'https://developer.mozilla.org/',
+      reason: 'Use it to verify the relevant JavaScript concepts.',
+    },
+  ],
+  strategy: [
+    {
+      step: 'Review the core concept',
+      description: 'Spend 25 minutes outlining graph traversal from memory.',
+    },
+  ],
+  estimatedTime: '45 minutes',
+  quickHint: 'Draw a small graph while tracing each algorithm step.',
+  studyTechnique: {
+    name: 'Pomodoro',
+    instructions: 'Study for 25 minutes, then take a 5-minute break.',
+  },
+};
 
 function authHeader() {
   const token = jwt.sign({ userId }, process.env.JWT_SECRET);
@@ -47,9 +75,7 @@ describe('AI recommendations API', () => {
       },
     ];
     mockTaskQuery(pendingTasks);
-    mockGenerateRecommendation.mockResolvedValue(
-      'Review graph traversal first, then practice related problems.'
-    );
+    mockGenerateRecommendation.mockResolvedValue(structuredRecommendation);
 
     const response = await request(app)
       .post('/api/ai/recommendations')
@@ -58,8 +84,8 @@ describe('AI recommendations API', () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
       success: true,
-      recommendation:
-        'Review graph traversal first, then practice related problems.',
+      recommendation: structuredRecommendation.summary,
+      structuredRecommendation,
     });
     expect(mockTask.find).toHaveBeenCalledWith({
       user: userId,
@@ -119,6 +145,46 @@ describe('AI recommendations API', () => {
     });
   });
 
+  test('handles invalid JSON from Groq', async () => {
+    mockTaskQuery([
+      {
+        title: 'Review algorithms',
+        description: 'Study graph traversal',
+        priority: 'high',
+      },
+    ]);
+    const error = new Error('Groq returned invalid JSON');
+    error.code = 'GROQ_INVALID_RESPONSE';
+    mockGenerateRecommendation.mockRejectedValue(error);
+
+    const response = await request(app)
+      .post('/api/ai/recommendations')
+      .set('Authorization', authHeader());
+
+    expect(response.status).toBe(502);
+    expect(response.body).toEqual({
+      success: false,
+      message: 'The AI returned an invalid recommendation. Please try again.',
+    });
+  });
+
+  test('handles missing fields in a structured recommendation', () => {
+    expect(() =>
+      parseStructuredRecommendation(
+        JSON.stringify({
+          ...structuredRecommendation,
+          strategy: [],
+        })
+      )
+    ).toThrow('Groq returned an incomplete recommendation');
+  });
+
+  test('rejects invalid JSON when parsing a structured recommendation', () => {
+    expect(() => parseStructuredRecommendation('{not-json')).toThrow(
+      'Groq returned invalid JSON'
+    );
+  });
+
   test('excludes completed tasks from data sent to Groq', async () => {
     const pendingTasks = [
       {
@@ -128,7 +194,7 @@ describe('AI recommendations API', () => {
       },
     ];
     mockTaskQuery(pendingTasks);
-    mockGenerateRecommendation.mockResolvedValue('Focus on the pending task.');
+    mockGenerateRecommendation.mockResolvedValue(structuredRecommendation);
 
     const response = await request(app)
       .post('/api/ai/recommendations')

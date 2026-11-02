@@ -46,8 +46,12 @@ async function getRecommendations(req, res) {
   }
 
   try {
-    const recommendation = await generateRecommendation(pendingTasks);
-    return res.json({ success: true, recommendation });
+    const structuredRecommendation = await generateRecommendation(pendingTasks);
+    return res.json({
+      success: true,
+      recommendation: structuredRecommendation.summary,
+      structuredRecommendation,
+    });
   } catch (error) {
     logGroqError(error);
 
@@ -62,6 +66,13 @@ async function getRecommendations(req, res) {
       return res.status(502).json({
         success: false,
         message: 'The AI did not return a recommendation. Please try again.',
+      });
+    }
+
+    if (error.code === 'GROQ_INVALID_RESPONSE') {
+      return res.status(502).json({
+        success: false,
+        message: 'The AI returned an invalid recommendation. Please try again.',
       });
     }
 

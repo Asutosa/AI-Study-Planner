@@ -41,9 +41,12 @@ function TaskList({
                 </span>
               </div>
               {task.description && <p>{task.description}</p>}
-              <span className={`task-status ${task.completed ? 'status-complete' : ''}`}>
-                {task.completed ? 'Completed' : 'Pending'}
-              </span>
+              <div className="task-status-row">
+                <span className={`task-status ${task.completed ? 'status-complete' : ''}`}>
+                  <span className="status-dot" aria-hidden="true" />
+                  {task.completed ? 'Completed' : 'Pending'}
+                </span>
+              </div>
             </div>
             <div className="task-actions">
               <button

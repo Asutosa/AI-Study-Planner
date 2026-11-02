@@ -28,39 +28,45 @@ function TaskForm({ task, onSubmit, onCancel, submitting }) {
 
   return (
     <form className="task-form" onSubmit={handleSubmit}>
-      <label htmlFor="task-title">Title</label>
-      <input
-        id="task-title"
-        name="title"
-        type="text"
-        value={form.title}
-        onChange={handleChange}
-        placeholder="e.g. Study DBMS"
-        maxLength="200"
-        required
-      />
+      <div className="field-group">
+        <label htmlFor="task-title">Title</label>
+        <input
+          id="task-title"
+          name="title"
+          type="text"
+          value={form.title}
+          onChange={handleChange}
+          placeholder="e.g. Study DBMS"
+          maxLength="200"
+          required
+        />
+      </div>
 
-      <label htmlFor="task-description">Description</label>
-      <textarea
-        id="task-description"
-        name="description"
-        value={form.description}
-        onChange={handleChange}
-        placeholder="What do you want to study?"
-        rows="3"
-      />
+      <div className="field-group">
+        <label htmlFor="task-description">Description</label>
+        <textarea
+          id="task-description"
+          name="description"
+          value={form.description}
+          onChange={handleChange}
+          placeholder="What do you want to study?"
+          rows="3"
+        />
+      </div>
 
-      <label htmlFor="task-priority">Priority</label>
-      <select
-        id="task-priority"
-        name="priority"
-        value={form.priority}
-        onChange={handleChange}
-      >
-        <option value="low">Low</option>
-        <option value="medium">Medium</option>
-        <option value="high">High</option>
-      </select>
+      <div className="field-group">
+        <label htmlFor="task-priority">Priority</label>
+        <select
+          id="task-priority"
+          name="priority"
+          value={form.priority}
+          onChange={handleChange}
+        >
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
 
       <div className="form-actions">
         <button type="submit" disabled={submitting}>
