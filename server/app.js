@@ -9,10 +9,15 @@ const aiRoutes = require('./routes/aiRoutes');
 dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
+const allowedOrigin = process.env.CLIENT_URL || 'http://localhost:5173';
+
+console.log(
+  `[CORS] CLIENT_URL set: ${Boolean(process.env.CLIENT_URL)}, allowed origin: ${allowedOrigin}`
+);
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: allowedOrigin,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
